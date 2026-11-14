@@ -33,7 +33,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%}
 #mic:hover{background:rgba(95,242,255,.15)}
 #mic.on{background:rgba(95,242,255,.25);box-shadow:0 0 42px rgba(95,242,255,.45)}
 #gear{position:fixed;bottom:34px;right:30px;z-index:6;width:44px;height:44px;border-radius:50%;border:1px solid rgba(95,242,255,.25);background:rgba(8,20,28,.6);color:rgba(216,244,251,.7);font-size:18px;cursor:pointer}
-#hint{position:fixed;bottom:40px;left:30px;z-index:6;font-size:11.5px;color:rgba(216,244,251,.45);letter-spacing:.06em}
+#hint{position:fixed;bottom:88px;left:30px;z-index:6;font-size:11.5px;color:rgba(216,244,251,.45);letter-spacing:.06em}
+#typein{position:fixed;bottom:34px;left:30px;z-index:6;width:min(400px,38vw);padding:11px 16px;border-radius:12px;border:1px solid rgba(95,242,255,.3);background:rgba(8,20,28,.7);color:#eaffff;font-size:14px;outline:none}
 #setup{position:fixed;inset:0;z-index:20;background:rgba(2,5,9,.92);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center}
 #setup .card{width:min(520px,90vw);background:rgba(8,20,28,.85);border:1px solid rgba(95,242,255,.3);border-radius:18px;padding:36px 34px;box-shadow:0 0 60px rgba(95,242,255,.12)}
 #setup h2{font-weight:300;letter-spacing:.4em;color:#eaffff;margin-bottom:6px}
@@ -53,7 +54,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%}
 <div id="log"></div>
 <button id="mic" title="talk">🎙</button>
 <button id="gear" title="setup">⚙</button>
-<div id="hint">say "hey jarvis" — or click the mic</div>
+<div id="hint">say "hey jarvis", click the mic, or type below</div>
+<input id="typein" placeholder="type a command, sir…" spellcheck="false" autocomplete="off">
 <div id="setup" style="display:none">
  <div class="card">
   <h2>JARVIS</h2>
@@ -134,7 +136,7 @@ function srStart(){
   st.sr.onresult=e=>{let fin='';for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)fin+=e.results[i][0].transcript;
    if(fin.trim())onHeard(fin.trim())};
   st.sr.onend=()=>{if(st.wantSr&&!st.speaking){try{st.sr.start()}catch(e){}}};
-  st.sr.onerror=ev=>{if(ev.error==='not-allowed'){st.wantSr=false;setStatus('mic blocked — click 🎙')}};
+  st.sr.onerror=ev=>{const m=ev.error;if(m==='not-allowed'||m==='service-not-allowed'){st.wantSr=false;setStatus('mic blocked: click the icon left of the address bar, allow, then tap 🎙')}else if(m==='audio-capture'){st.wantSr=false;setStatus('no microphone found, sir')}else if(m==='network'){setStatus('speech service hiccup, retrying')}else{setStatus('mic: '+m+' — tap 🎙 to retry')}};
   try{st.sr.start()}catch(e){}}
  else try{st.sr.start()}catch(e){}}
 function srStop(hard){try{st.sr&&st.sr.abort()}catch(e){}if(hard)st.sr=null}
@@ -219,8 +221,9 @@ function show(t,who){const d=document.createElement('div');d.className='msg '+wh
  while($('log').children.length>3)$('log').firstChild.remove()}
 
 /* ---------- ui ---------- */
-$('mic').onclick=()=>{st.wantSr=true;srStart();st.sr&&st.sr.start&&null;try{st.sr.start()}catch(e){}};
+$('mic').onclick=()=>{st.wantSr=true;srStop(true);setTimeout(srStart,150);setStatus('mic on — say "hey jarvis"')};
 $('gear').onclick=()=>{$('setup').style.display='flex';$('keyin').value=st.key};
+$('typein').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('typein').value.trim()){const v=$('typein').value.trim();$('typein').value='';st.mode='listening';handle(v);arm()}});
 $('savekey').onclick=()=>{st.key=$('keyin').value.trim();localStorage.setItem(LS.key,st.key);$('setup').style.display='none';
  say(st.key?'Excellent, sir. Full faculties restored.':'Very well, sir. Instinct mode it is.')};
 $('skipkey').onclick=()=>{$('setup').style.display='none';say('As you wish, sir. Built-ins at the ready.')};
