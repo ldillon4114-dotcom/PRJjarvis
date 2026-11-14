@@ -179,7 +179,7 @@ function handle(q){
   return out(`Noted and filed, sir. ${pick(["I shan't forget it.","Committed to memory.","Consider it done."])}`)}
  if(/what (?:do|have) you rememb/.test(s)){const f=mem();return out(f.length?("As it happens: "+f.slice(-6).join('; ')+'.'):"A blank slate so far, sir. Tell me to remember things and I will.")}
  /* timer */
- m=s.match(/(?:set|start) (?:a |an )?timer (?:for )?(\d+)\s*(second|minute|hour|sec|min)/);
+ m=s.match(/(?:set|start|make) (?:a |an )?timer (?:for )?(\d+)\s*(second|minute|hour|sec|min)/);
  if(m){const n=+m[1],u=m[2],ms=n*(u[0]==='s'?1e3:u[0]==='m'?6e4:36e5);
   setTimeout(()=>{say(`Sir, your ${n} ${u}${n>1?'s':''} timer has elapsed.`)},ms);
   return out(`Timer set, sir. ${n} ${u}${n>1?'s':''}. I'll announce it.`)}

@@ -269,7 +269,7 @@
     if(/what can you do|^help$|commands/.test(t)){say("Ask me anything at all now, sir. The built-ins still work: the time, the date, timers, notes, math, weather, coin flips, dice and opening sites.");return;}
     if(/forget everything|clear (your )?memory|wipe memory/.test(t)){saveHist([]);saveNotes([]);addLine('jarvis','Memory wiped, sir. Clean slate.');return;}
 
-    if(/time/.test(t)){say("It's "+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+".");return;}
+    if(/\btime\b(?!r)/.test(t)){say("It's "+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+".");return;}
     if(/date|what day/.test(t)){say("Today is "+new Date().toLocaleDateString([], {weekday:'long',month:'long',day:'numeric',year:'numeric'})+".");return;}
     if((m=t.match(/(?:timer|remind me in)\D*(\d+)\s*(second|sec|minute|min|hour)/))||(m=t.match(/in (\d+)\s*(second|sec|minute|min|hour)/))){
       var n=parseInt(m[1],10), unit=m[2];
