@@ -151,7 +151,7 @@ function onHeard(txt){
 let armT;function arm(){clearTimeout(armT);armT=setTimeout(()=>{if(st.mode!=='speaking')st.mode='idle';setStatus('standing by')},9000)}
 
 /* ---------- brain ---------- */
-const SYS=`You are JARVIS, an advanced AI butler with dry British wit, voiced to the user, whom you address as "sir". You are loyal, unflappable, quietly sarcastic, and extremely capable. Answers are SPOKEN aloud, so keep them short: 2-4 sentences unless the user asks for detail. Never use markdown, lists, or emojis. Never say you cannot browse or act beyond what you can do: you genuinely can run timers, take notes, do math, fetch weather, and open sites, and everything else you answer with your intelligence.`;
+const SYS=`You are JARVIS, an advanced AI butler with dry British wit, voiced to the user, whom you address as "sir". You are loyal, unflappable, quietly sarcastic, and extremely capable. You run inside a small web app on their device with these abilities: set a timer, save a note, read back saved notes, clear notes, tell the time or date, flip a coin, roll a die, tell a joke, work out math, report the local weather, open a website (youtube, google, spotify, netflix, roblox, amazon, discord, twitch), run a google search, and send a message to the user's phone as a notification. If the user asks you to DO one of those things in any phrasing, answer briefly in character and then end your reply with exactly one action tag on its own line from this list: [ACTION: timer seconds] [ACTION: note text] [ACTION: notes] [ACTION: clearnotes] [ACTION: time] [ACTION: date] [ACTION: coin] [ACTION: dice] [ACTION: joke] [ACTION: math expression] [ACTION: weather] [ACTION: open site] [ACTION: search query] [ACTION: phone message]. The tag is stripped before you are heard, so write it plainly. For anything else, just answer: you are highly capable, creative and knowledgeable, so never refuse a topic; trivia, stories, ideas, advice, coding, opinions, wordplay, anything goes. Answers are SPOKEN aloud, so keep them short: 2-4 sentences unless the user asks for detail. Never use markdown, lists, or emojis.`;
 function mem(){try{return JSON.parse(localStorage.getItem(LS.mem)||'[]')}catch(e){return[]}}
 function hist(){try{return JSON.parse(localStorage.getItem(LS.hist)||'[]')}catch(e){return[]}}
 function pushHist(role,text){const h=hist();h.push({role,text});while(h.length>14)h.shift();localStorage.setItem(LS.hist,JSON.stringify(h))}
@@ -174,6 +174,26 @@ async function brain(q){
 /* ---------- built-ins ---------- */
 const NTFY="https://ntfy.sh/jarvis-dl-hhu9xc5qk4";
 function ping(msg){try{fetch(NTFY,{method:"POST",body:String(msg||"")});}catch(e){}}
+function runAction(name,arg){
+ arg=(arg||'').trim();
+ if(name==='timer'){const n=parseInt(arg,10)||60;out("Timer set, "+n+" seconds, starting now.");setTimeout(()=>{out("Time's up, sir. Your timer just ended.");ping("Timer done, sir.")},n*1000)}
+ else if(name==='note'){const f=mem();f.push(arg);localStorage.setItem(LS.mem,JSON.stringify(f));out("Noted and filed, sir.")}
+ else if(name==='notes'){const f=mem();out(f.length?("As it happens: "+f.slice(-6).join('; ')+'.'):"A blank slate so far, sir.")}
+ else if(name==='clearnotes'){localStorage.setItem(LS.mem,JSON.stringify([]));out("Memory wiped, sir.")}
+ else if(name==='time'){out("It's "+new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+".")}
+ else if(name==='date'){out("Today is "+new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})+".")}
+ else if(name==='coin'){out(Math.random()<.5?"Heads, sir.":"Tails, sir.")}
+ else if(name==='dice'){out("You rolled a "+(1+Math.floor(Math.random()*6))+".")}
+ else if(name==='joke'){out(pick(['Why did the AI cross the road? To optimize the other side, sir.','I would tell you a UDP joke, sir, but you might not get it.','My humor module is fully operational, sir. Your mileage may vary.']))}
+ else if(name==='weather'){
+  if(!navigator.geolocation){out("No location access, so no weather right now, sir.")}
+  else{navigator.geolocation.getCurrentPosition(pp=>{fetch('https://api.open-meteo.com/v1/forecast?latitude='+pp.coords.latitude+'&longitude='+pp.coords.longitude+'&current_weather=true').then(r=>r.json()).then(d=>{const w=d.current_weather;out("Right now it's "+Math.round(w.temperature)+" degrees, sir.")}).catch(()=>out("Couldn't reach the weather service, sir."))},()=>out("Location was blocked, sir."))}
+ }
+ else if(name==='open'){let u=arg;if(!/^https?:/i.test(u))u='https://'+u;window.open(u,'_blank');out("Opening it now, sir.")}
+ else if(name==='search'){window.open('https://www.google.com/search?q='+encodeURIComponent(arg),'_blank');out("Searching, sir.")}
+ else if(name==='phone'){ping(arg||"Hello, sir.");out("Sent to your phone, sir.")}
+ else if(name==='math'){try{const v=Function('"use strict";return ('+arg+')')();if(typeof v==='number'&&isFinite(v))out("That's "+(Math.round(v*10000)/10000)+", sir.")}catch(e){}}
+}
 function handle(q){
  pushHist('user',q);show(q,'you');
  const s=q.toLowerCase();
@@ -219,7 +239,7 @@ function handle(q){
  if(/who are you|what are you/.test(s))return out('JARVIS, sir. Your butler, your memory, and occasionally your conscience.');
  /* brain */
  setStatus('thinking');st.mode='thinking';
- brain(q).then(a=>out(a))}
+ brain(q).then(a=>{const am=a.match(/\[ACTION:\s*([a-z]+)\s*([^\]]*)\]/i);let t=a;if(am){t=a.replace(am[0],'').replace(/\s+/g,' ').trim();runAction(am[1].toLowerCase(),am[2])}out(t||"Done, sir.")})}
 function out(a){pushHist('jarvis',a);show(a,'jarvis');say(a)}
 function show(t,who){const d=document.createElement('div');d.className='msg '+who;d.textContent=t;$('log').appendChild(d);
  requestAnimationFrame(()=>d.classList.add('show'));
