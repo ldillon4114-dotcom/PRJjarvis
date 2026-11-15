@@ -172,6 +172,8 @@ async function brain(q){
   return out.trim()}catch(e){return "My brain just refused that call, sir. If the key's gone stale, setup will take a fresh one."}}
 
 /* ---------- built-ins ---------- */
+const NTFY="https://ntfy.sh/jarvis-dl-hhu9xc5qk4";
+function ping(msg){try{fetch(NTFY,{method:"POST",body:String(msg||"")});}catch(e){}}
 function handle(q){
  pushHist('user',q);show(q,'you');
  const s=q.toLowerCase();
@@ -180,10 +182,13 @@ function handle(q){
  if(m){const facts=mem();facts.push(m[1]);localStorage.setItem(LS.mem,JSON.stringify(facts));
   return out(`Noted and filed, sir. ${pick(["I shan't forget it.","Committed to memory.","Consider it done."])}`)}
  if(/what (?:do|have) you rememb/.test(s)){const f=mem();return out(f.length?("As it happens: "+f.slice(-6).join('; ')+'.'):"A blank slate so far, sir. Tell me to remember things and I will.")}
- /* timer */
+  if(/(?:text|ping|notify|message)[^;]*\bphone\b/.test(s)){
+  const pm=s.replace(/^(?:jarvis[,:]?\s*)?(?:please\s+)?(?:text|ping|notify|message)\s+(?:my|the)\s+phone\s*(?:saying\s+|that\s+|with\s+|and\s+say\s+|:)?/,"").trim()||"Testing the phone link, sir.";
+  ping(pm);return out("Sent to your phone, sir.")}
+/* timer */
  m=s.match(/(?:set|start|make) (?:a |an )?timer (?:for )?(\d+)\s*(second|minute|hour|sec|min)/);
  if(m){const n=+m[1],u=m[2],ms=n*(u[0]==='s'?1e3:u[0]==='m'?6e4:36e5);
-  setTimeout(()=>{say(`Sir, your ${n} ${u}${n>1?'s':''} timer has elapsed.`)},ms);
+  setTimeout(()=>{say(`Sir, your ${n} ${u}${n>1?'s':''} timer has elapsed.`);ping(`Timer done, sir: ${n} ${u}${n>1?'s':''} elapsed.`)},ms);
   return out(`Timer set, sir. ${n} ${u}${n>1?'s':''}. I'll announce it.`)}
  /* math */
  m=q.replace(/what(?:'s| is)/,'').replace(/[?=]/g,'').trim();

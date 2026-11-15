@@ -259,6 +259,8 @@
     }).catch(function(){busy=false; resetRing(); say("I couldn't read that recording, sir. Try again.");});
   }
 
+  var NTFY="https://ntfy.sh/jarvis-dl-hhu9xc5qk4";
+  function ping(msg){try{fetch(NTFY,{method:"POST",body:String(msg||"")});}catch(e){}}
   function handle(raw){
     var t=String(raw||'').toLowerCase().trim();
     if(!t)return;
@@ -275,7 +277,7 @@
       var n=parseInt(m[1],10), unit=m[2];
       var ms=n*(unit.indexOf('s')===0?1000:(unit.indexOf('m')===0?60000:3600000));
       say("Timer set. "+n+" "+(n===1?unit:unit+"s")+", starting now.");
-      setTimeout(function(){say("Time's up, sir. Your "+n+" "+unit+" timer just ended.");},ms);
+      setTimeout(function(){say("Time's up, sir. Your "+n+" "+unit+" timer just ended.");ping("Timer done, sir: "+n+" "+unit+"s elapsed.");},ms);
       return;
     }
     if(/^note( that)? |remember( that)? /.test(t)){
@@ -291,7 +293,13 @@
       return;
     }
     if(/clear my notes|delete my notes/.test(t)){saveNotes([]);say("Notes cleared, sir.");return;}
-    if(/flip a coin|coin flip/.test(t)){say(Math.random()<.5?"Heads, sir.":"Tails, sir.");return;}
+        if(/(?:text|ping|notify|message)[^;]*\bphone\b/.test(t)){
+      var pm=t.replace(/^(?:jarvis[,:]?\s*)?(?:please\s+)?(?:text|ping|notify|message)\s+(?:my|the)\s+phone\s*(?:saying\s+|that\s+|with\s+|and\s+say\s+|:)?/,"").trim();
+      if(!pm){pm="Testing the phone link, sir.";}
+      ping(pm); say("Sent to your phone, sir.");
+      return;
+    }
+if(/flip a coin|coin flip/.test(t)){say(Math.random()<.5?"Heads, sir.":"Tails, sir.");return;}
     if(/roll (a |the )?(die|dice)/.test(t)){say("You rolled a "+(1+Math.floor(Math.random()*6))+".");return;}
     if(/joke/.test(t)){say(jokes[Math.floor(Math.random()*jokes.length)]);return;}
     if(/weather/.test(t)){
