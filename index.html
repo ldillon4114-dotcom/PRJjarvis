@@ -182,7 +182,7 @@
       if(!res.ok){
         var em=(res.d&&res.d.error&&res.d.error.message)?res.d.error.message:'';
         addLine('jarvis','(debug: '+res.status+(em?' '+em:'')+')');
-        var sm=(res.status===404||(res.status===400&&em.indexOf('model')>-1))?((em.match(/models\/([a-z0-9.\-]+)/)||[])[1]||'gemini-3.8-flash'):null;
+        var sm=(res.status===404||(res.status===400&&em.indexOf('model')>-1))?((em.match(/use models\/([a-z0-9.\-]+)/)||[])[1]||'gemini-3.8-flash'):null;
         if(sm&&MODEL!==sm){
           MODEL=sm; localStorage.setItem('jarvis_model',MODEL);
           return askAI(q);
