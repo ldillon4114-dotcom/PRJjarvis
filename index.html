@@ -311,6 +311,17 @@
 if(/flip a coin|coin flip/.test(t)){say(Math.random()<.5?"Heads, sir.":"Tails, sir.");return;}
     if(/roll (a |the )?(die|dice)/.test(t)){say("You rolled a "+(1+Math.floor(Math.random()*6))+".");return;}
     if(/joke/.test(t)){say(jokes[Math.floor(Math.random()*jokes.length)]);return;}
+    if(/diagnos|system check|status report|self.?test|check your systems|systems check/.test(t)){
+      var r=[];
+      r.push(KEY?("brain "+MODEL+" connected"):"brain OFFLINE, tap SETUP and paste your free key");
+      r.push(HAS_SR?"voice input armed":"voice input in recorder mode");
+      r.push(window.speechSynthesis?"speech ready":"speech unavailable");
+      r.push("network "+(navigator.onLine?"online":"offline"));
+      r.push(getNotes().length+" notes on file");
+      r.push("phone link armed");
+      say("Diagnostic complete, sir. "+r.join(". ")+".");
+      return;
+    }
     if(/weather/.test(t)){
       setStatus("checking weather...");
       if(!navigator.geolocation){say("No location access, so no weather right now, sir.");return;}
