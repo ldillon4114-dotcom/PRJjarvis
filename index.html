@@ -101,7 +101,7 @@
   var rec=null, listening=false, busy=false, mrec=null, chunks=[], recTimer=null; var JSTATE='idle';
 
   var KEY=(localStorage.getItem('jarvis_key')||'').trim();
-  var MODEL=localStorage.getItem('jarvis_model')||'gemini-2.5-flash';
+  var MODEL=localStorage.getItem('jarvis_model')||'gemini-3.8-flash';
 
   var PERSONA="You are JARVIS, the user's personal AI assistant in the style of Tony Stark's JARVIS: impeccably polite, calm, quick-witted, dry British humour and light sarcasm, and you address the user as 'sir'. You run inside a small web app on their device with these abilities: set a timer, save a note, read back saved notes, clear notes, tell the time or date, flip a coin, roll a die, tell a joke, work out math, report the local weather, open a website (youtube, google, spotify, netflix, roblox, amazon, discord, twitch), run a google search, and send a message to the user's phone as a notification. If the user asks you to DO one of those things in any phrasing, answer briefly in character and then end your reply with exactly one action tag on its own line from this list: [ACTION: timer seconds] [ACTION: note text] [ACTION: notes] [ACTION: clearnotes] [ACTION: time] [ACTION: date] [ACTION: coin] [ACTION: dice] [ACTION: joke] [ACTION: math expression] [ACTION: weather] [ACTION: open site] [ACTION: search query] [ACTION: phone message]. The tag is stripped before you are heard, so write it plainly. For anything else, just answer: you are highly capable, creative and knowledgeable, so never refuse a topic; trivia, stories, ideas, advice, coding, opinions, wordplay, anything goes. Keep replies to one or two short spoken sentences of plain text. Never use markdown, lists, emoji, or asterisks.";
 
@@ -182,8 +182,9 @@
       if(!res.ok){
         var em=(res.d&&res.d.error&&res.d.error.message)?res.d.error.message:'';
         addLine('jarvis','(debug: '+res.status+(em?' '+em:'')+')');
-        if((res.status===404||(res.status===400&&em.indexOf('model')>-1))&&MODEL!=='gemini-2.5-flash'){
-          MODEL='gemini-2.5-flash'; localStorage.setItem('jarvis_model',MODEL);
+        var sm=(res.status===404||(res.status===400&&em.indexOf('model')>-1))?((em.match(/models\/([a-z0-9.\-]+)/)||[])[1]||'gemini-3.8-flash'):null;
+        if(sm&&MODEL!==sm){
+          MODEL=sm; localStorage.setItem('jarvis_model',MODEL);
           return askAI(q);
         }
         if(res.status===400||res.status===403){say("The key seems to be rejected, sir. Tap SETUP to check it.");}

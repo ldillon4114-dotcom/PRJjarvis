@@ -163,7 +163,7 @@ async function brain(q){
  const contents=hist().map(h=>({role:h.role==='jarvis'?'model':'user',parts:[{text:h.text}]}));
  contents.push({role:'user',parts:[{text:q}]});
  try{
-  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+encodeURIComponent(st.key),{
+  const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key='+encodeURIComponent(st.key),{
    method:'POST',headers:{'Content-Type':'application/json'},
    body:JSON.stringify({systemInstruction:{parts:[{text:SYS+m}]},contents,generationConfig:{temperature:.9,maxOutputTokens:1500}})});
   const d=await r.json();
@@ -237,7 +237,7 @@ function handle(q){
  if(/tell me a joke|make me laugh/.test(s))return out(pick(['Why did the AI cross the road? To optimize the other side, sir.','I would tell you a UDP joke, sir, but you might not get it.','My humor module is fully operational, sir. Your mileage may vary.']));
  if(/diagnos|system check|status report|self.?test|check your systems|systems check/.test(s)){
   const r=[];
-  r.push(st.key?("brain gemini-2.5-flash connected"):"brain OFFLINE, activate me in setup");
+  r.push(st.key?("brain gemini-3.8-flash connected"):"brain OFFLINE, activate me in setup");
   r.push("speech "+(window.speechSynthesis?"ready":"unavailable"));
   r.push("network "+(navigator.onLine?"online":"offline"));
   r.push(mem().length+" facts remembered");
